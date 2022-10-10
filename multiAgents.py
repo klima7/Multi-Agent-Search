@@ -129,7 +129,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         Here are some method calls that might be useful when implementing minimax.
 
-        gameState.getLegalActions(agentIndex):
         Returns a list of legal actions for an agent
         agentIndex=0 means Pacman, ghosts are >= 1
 
@@ -146,7 +145,29 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        action, _ = self.min_max_value(gameState, 0, 0)
+        return action
+
+    def min_max_value(self, game_state, agent_index, depth):
+        if game_state.isWin() or game_state.isLose() or depth >= self.depth * game_state.getNumAgents():
+            return 'Stop', self.evaluationFunction(game_state)
+        elif agent_index == 0:
+            return self.some_value(game_state, 0, depth, best_function=max)
+        else:
+            return self.some_value(game_state, agent_index, depth, best_function=min)
+
+    def some_value(self, game_state, agent_index, depth, best_function):
+        next_actions = game_state.getLegalActions(agent_index)
+        next_states = [game_state.generateSuccessor(agent_index, action) for action in next_actions]
+        next_agent_index = (agent_index + 1) % game_state.getNumAgents()
+        values = [self.min_max_value(next_state, next_agent_index, depth + 1)[1] for next_state in next_states]
+        best_value = best_function(values)
+        best_indices = [index for index in range(0, len(values)) if values[index] == best_value]
+        chosen_index = random.choice(best_indices)
+        best_action = next_actions[chosen_index]
+        return best_action, best_value
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
