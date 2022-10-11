@@ -163,9 +163,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         next_agent_index = (agent_index + 1) % game_state.getNumAgents()
         values = [self.min_max_value(next_state, next_agent_index, depth + 1)[1] for next_state in next_states]
         best_value = best_function(values)
-        best_indices = [index for index in range(0, len(values)) if values[index] == best_value]
-        chosen_index = random.choice(best_indices)
-        best_action = next_actions[chosen_index]
+        best_action = next_actions[values.index(best_value)]
         return best_action, best_value
 
 
