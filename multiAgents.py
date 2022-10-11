@@ -177,7 +177,54 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        action, _ = self.min_max_value(
+            game_state=gameState,
+            agent_index=0,
+            alpha=-math.inf,
+            beta=math.inf,
+            depth=0
+        )
+        return action
+
+    def min_max_value(self, game_state, agent_index, alpha, beta, depth):
+        if game_state.isWin() or game_state.isLose() or depth >= self.depth * game_state.getNumAgents():
+            return 'Stop', self.evaluationFunction(game_state)
+        elif agent_index == 0:
+            return self.max_value(game_state, 0, alpha, beta, depth)
+        else:
+            return self.min_value(game_state, agent_index, alpha, beta, depth)
+
+    def max_value(self, game_state, agent_index, alpha, beta, depth):
+        best_value = -math.inf
+        best_action = 'Stop'
+        next_agent_index = (agent_index + 1) % game_state.getNumAgents()
+
+        for next_action in game_state.getLegalActions(agent_index):
+            next_state = game_state.generateSuccessor(agent_index, next_action)
+            next_value = self.min_max_value(next_state, next_agent_index, alpha, beta, depth + 1)[1]
+            if next_value > best_value:
+                best_action, best_value = next_action, next_value
+            if best_value > beta:
+                return best_action, best_value
+            alpha = max(alpha, best_value)
+        return best_action, best_value
+
+    def min_value(self, game_state, agent_index, alpha, beta, depth):
+        best_value = math.inf
+        best_action = 'Stop'
+        next_agent_index = (agent_index + 1) % game_state.getNumAgents()
+
+        for next_action in game_state.getLegalActions(agent_index):
+            next_state = game_state.generateSuccessor(agent_index, next_action)
+            next_value = self.min_max_value(next_state, next_agent_index, alpha, beta, depth + 1)[1]
+            if next_value < best_value:
+                best_action, best_value = next_action, next_value
+            if best_value < alpha:
+                return best_action, best_value
+            beta = min(beta, best_value)
+        return best_action, best_value
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
