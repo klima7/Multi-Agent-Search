@@ -19,6 +19,7 @@ import random, util, math
 from game import Agent
 from pacman import GameState
 
+
 class ReflexAgent(Agent):
     """
     A reflex agent chooses an action at each choice point by examining
@@ -28,7 +29,6 @@ class ReflexAgent(Agent):
     it in any way you see fit, so long as you don't touch our method
     headers.
     """
-
 
     def getAction(self, gameState: GameState):
         """
@@ -46,7 +46,7 @@ class ReflexAgent(Agent):
         scores = [self.evaluationFunction(gameState, action) for action in legalMoves]
         bestScore = max(scores)
         bestIndices = [index for index in range(len(scores)) if scores[index] == bestScore]
-        chosenIndex = random.choice(bestIndices) # Pick randomly among the best
+        chosenIndex = random.choice(bestIndices)  # Pick randomly among the best
 
         "Add more of your code here if you want to"
 
@@ -73,7 +73,7 @@ class ReflexAgent(Agent):
         "*** YOUR CODE HERE ***"
         ghost_distance = self.distance_to_nearest_ghost(successorGameState)
         food_distance = self.distance_to_nearest_food(successorGameState, currentGameState)
-        return ghost_distance / (food_distance+1)
+        return ghost_distance / (food_distance + 1)
 
     def distance_to_nearest_ghost(self, gameState):
         pacmanPos = gameState.getPacmanPosition()
@@ -87,6 +87,7 @@ class ReflexAgent(Agent):
         distances = [math.dist(pacmanPos, foodPos) for foodPos in foodsPos]
         return min(distances)
 
+
 def scoreEvaluationFunction(currentGameState: GameState):
     """
     This default evaluation function just returns the score of the state.
@@ -96,6 +97,7 @@ def scoreEvaluationFunction(currentGameState: GameState):
     (not reflex agents).
     """
     return currentGameState.getScore()
+
 
 class MultiAgentSearchAgent(Agent):
     """
@@ -112,10 +114,11 @@ class MultiAgentSearchAgent(Agent):
     is another abstract class.
     """
 
-    def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
-        self.index = 0 # Pacman is always agent index 0
+    def __init__(self, evalFn='scoreEvaluationFunction', depth='2'):
+        self.index = 0  # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
+
 
 class MinimaxAgent(MultiAgentSearchAgent):
     """
@@ -268,7 +271,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         mean_value = sum(values) / len(values)
         return None, mean_value
 
-def betterEvaluationFunction(currentGameState: GameState):
+
+def betterEvaluationFunction(game_state: GameState):
     """
     Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
     evaluation function (question 5).
@@ -276,7 +280,43 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    WIN_FACTOR = 5000
+    LOST_FACTOR = -50000
+    FOOD_COUNT_FACTOR = 1_000_000
+    FOOD_DISTANCE_FACTOR = 1_000
+    CAPSULES_FACTOR = 10_000
+
+    food_distance = distance_to_nearest(game_state, game_state.getFood().asList())
+    ghost_distance = distance_to_nearest(game_state, game_state.getGhostPositions())
+    food_count = game_state.getNumFood()
+    capsules_count = len(game_state.getCapsules())
+
+    food_count_value = 1 / (food_count + 1) * FOOD_COUNT_FACTOR
+    ghost_value = ghost_distance
+    food_distance_value = 1 / food_distance * FOOD_DISTANCE_FACTOR
+    capsules_count_value = 1 / (capsules_count + 1) * CAPSULES_FACTOR
+    end_value = 0
+
+    if game_state.isLose():
+        end_value += LOST_FACTOR
+    elif game_state.isWin():
+        end_value += WIN_FACTOR
+
+    return food_count_value + ghost_value + food_distance_value + capsules_count_value + end_value
+
+
+def distance_to_nearest(game_state, positions):
+    if len(positions) == 0:
+        return math.inf
+    pacman_pos = game_state.getPacmanPosition()
+    distances = [manhattan_distance(pacman_pos, position) for position in positions]
+    return min(distances)
+
+
+def manhattan_distance(pos1, pos2):
+    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+
 
 # Abbreviation
 better = betterEvaluationFunction
